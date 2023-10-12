@@ -14,11 +14,10 @@
 
 // Imports
 const extractHtml = require('./js/functionality').extract_html_content;
-const olxUrlParams = require('./js/olx/olx_module').urlParams
-const olxUrlBuilder = require('./js/olx/olx_module').url_builder
+const olxModule = require('./js/olx/olx_module')
 
 const runProject = async () => {
-    const mainHtmlContent = await extractHtml(olxUrlBuilder(olxUrlParams), {})
+    const mainHtmlContent = await extractHtml(olxModule.url_builder(olxModule.urlParams), {})
     console.log(mainHtmlContent)
 }
 
