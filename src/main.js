@@ -9,6 +9,4 @@
 
 // Imports
 const olxModule = require('./js/olx/olx_module');
-
-
-olxModule.run();
+olxModule.fetchAds(olxModule.url_builder(olxModule.urlParams));
