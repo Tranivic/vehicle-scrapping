@@ -63,7 +63,7 @@ module.exports = {
         try {
             const extractionUrl = url;
             const mainHtmlContent = await extractHtml(extractionUrl, {});
-            
+
             if (!mainHtmlContent) {
                 throw new Error('The HTML file returned blank, check the log for error details!');
             }

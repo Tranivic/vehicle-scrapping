@@ -1,4 +1,4 @@
-const axios = require('axios')
+const axios = require('axios');
 
 exports.extract_html_content = async (url, params) => {
     try {
@@ -10,18 +10,18 @@ exports.extract_html_content = async (url, params) => {
 };
 
 exports.clean_itens_in_array_without_url = (array) => {
-    const cleanedArray = []
+    const cleanedArray = [];
     array.forEach(element => {
-        if (element.url){
-            cleanedArray.push(element)
+        if (element.url) {
+            cleanedArray.push(element);
         }
     });
-    return cleanedArray
-}
+    return cleanedArray;
+};
 
-exports.throttle_loop = async(array, callback, delay) =>{
+exports.throttle_loop = async (array, callback, delay) => {
     for (const item of array) {
         await new Promise((resolve) => setTimeout(resolve, delay));
         await callback(item);
     }
-}
+};
