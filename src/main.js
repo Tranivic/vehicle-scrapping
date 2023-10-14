@@ -7,38 +7,8 @@
 // 6º irei esportar as informaÃ§Ãµes Ãºteis.
 
 
-// Libs import
-const cheerio = require('cheerio');
-
-
 // Imports
-const extractHtml = require('./js/functionality').extract_html_content;
 const olxModule = require('./js/olx/olx_module');
 
 
-
-
-const runProject = async () => {
-    const extractionUrl = olxModule.url_builder(olxModule.urlParams);
-    const mainHtmlContent = await extractHtml(extractionUrl, {});
-    let extractedLinks = '';
-
-    if (mainHtmlContent) {
-        console.log('HTML extraido!');
-
-        const $ = cheerio.load(mainHtmlContent);
-        const extractionClass = olxModule.scrapHtmlClasses.addLink;
-
-
-        $(extractionClass).each((i, aTag) => {
-            extractedLinks += ' new-line ' + $(aTag).attr('href') + ' end-line ';
-        });
-
-        console.log(extractedLinks);
-    } else {
-        console.log('Arquivo HTML retornou em branco, verificar o log para detalhes de erro!');
-    }
-};
-
-
-runProject();
+olxModule.run();
