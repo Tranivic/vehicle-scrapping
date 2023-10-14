@@ -6,6 +6,7 @@ const cheerio = require('cheerio');
 
 module.exports = {
     urlParams: {
+        pageToFetch: 4,
         baseUrl: 'https://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
         localization: 'estado-rj/rio-de-janeiro-e-regiao',
         minPrice: 10000,
@@ -14,21 +15,25 @@ module.exports = {
             gnvOptional: false,
             allowGnvOption: false,
         },
-        htmlIdentifiers: {
-            scriptId: '#__NEXT_DATA__',
-            descriptionCatch: 'meta[property="og:description"]',
-            initialDataId: '#initial-data',
-        },
+    },
+
+    htmlIdentifiers: {
+        scriptId: '#__NEXT_DATA__',
+        descriptionCatch: 'meta[property="og:description"]',
+        initialDataId: '#initial-data',
     },
 
     url_builder(urlObj) {
         let url = `${urlObj.baseUrl}${urlObj.localization || ''}`;
+
         if (urlObj.minPrice && urlObj.maxPrice) {
             url += `?pe=${urlObj.maxPrice}&ps=${urlObj.minPrice}`;
         }
+
         if (urlObj.gnv.gnvOptional) {
             url += `&hgnv=${urlObj.gnv.allowGnvOption}&o=3`;
         }
+
         console.log('Url para extração: ' + url);
         return url;
     },
@@ -50,9 +55,9 @@ module.exports = {
         };
     },
 
-    async run() {
-        const { htmlIdentifiers } = this.urlParams;
-        const extractionUrl = this.url_builder(this.urlParams);
+    async fetchAds(url) {
+        const extractionUrl = url;
+
         const mainHtmlContent = await extractHtml(extractionUrl, {});
         saveFile('../src/log/', 'main.html', mainHtmlContent);
 
@@ -63,7 +68,7 @@ module.exports = {
 
         console.log('Main HTML Extracted!');
         const $ = cheerio.load(mainHtmlContent);
-        const $dataExtracted = $(htmlIdentifiers.scriptId).text();
+        const $dataExtracted = $(this.htmlIdentifiers.scriptId).text();
 
         if (!$dataExtracted) {
             console.log('No data extracted from selected ID or Class');
@@ -78,9 +83,9 @@ module.exports = {
             try {
                 const childHtml = await extractHtml(element.url);
                 const $child = cheerio.load(childHtml);
-                const initialData = JSON.parse($child(htmlIdentifiers.initialDataId).attr('data-json')).ad;
+                const initialData = JSON.parse($child(this.htmlIdentifiers.initialDataId).attr('data-json')).ad;
 
-                element.description = $child(htmlIdentifiers.descriptionCatch).attr('content');
+                element.description = $child(this.htmlIdentifiers.descriptionCatch).attr('content');
                 element.fipePrice = initialData.abuyFipePrice?.fipePrice || null;
                 element.averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
             } catch (error) {
