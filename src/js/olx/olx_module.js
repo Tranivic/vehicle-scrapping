@@ -3,7 +3,6 @@ const cleanArray = require('../functionality').clean_itens_in_array_without_url;
 const throttleLoop = require('../functionality').throttle_loop;
 const saveFile = require('../mixins/fs_functions').save_file;
 const cheerio = require('cheerio');
-const fs = require('fs');
 
 module.exports = {
     urlParams: {
@@ -17,58 +16,78 @@ module.exports = {
         },
         htmlIdentifiers: {
             scriptId: '#__NEXT_DATA__',
-            descriptionClass: '.ad__sc-1sj3nln-1'
+            descriptionCatch: 'meta[property="og:description"]',
+            initialDataId: '#initial-data',
         },
     },
 
-    url_builder: function (urlObj) {
-        let url = `${urlObj.baseUrl}${urlObj.localization ? urlObj.localization : ''}`;
+    url_builder(urlObj) {
+        let url = `${urlObj.baseUrl}${urlObj.localization || ''}`;
         if (urlObj.minPrice && urlObj.maxPrice) {
-            url = url + `?pe=${urlObj.maxPrice}&ps=${urlObj.minPrice}`;
+            url += `?pe=${urlObj.maxPrice}&ps=${urlObj.minPrice}`;
         }
         if (urlObj.gnv.gnvOptional) {
-            url = url + `&hgnv=${urlObj.gnv.allowGnvOption}&o=3`;
+            url += `&hgnv=${urlObj.gnv.allowGnvOption}&o=3`;
         }
-        console.log('Url para extração: ' + url);
+        console.log('Url para extraÃ§Ã£o: ' + url);
         return url;
     },
 
-    run: async function () {
+    ad_obj_builder(objc) {
+        return {
+            subject: objc.subject,
+            title: objc.title,
+            description: '',
+            price: parseInt(objc.price.replace(/[^0-9]/g, '')),
+            fipePrice: null,
+            averageOlxPrice: null,
+            listId: objc.listId,
+            url: objc.url,
+            thumbnail: objc.thumbnail,
+            location: objc.location,
+            vehiclePills: objc.vehiclePills,
+            trackingSpecificData: objc.trackingSpecificData
+        };
+    },
+
+    async run() {
+        const { htmlIdentifiers } = this.urlParams;
         const extractionUrl = this.url_builder(this.urlParams);
         const mainHtmlContent = await extractHtml(extractionUrl, {});
+        saveFile('../src/log/', 'main.html', mainHtmlContent);
 
-        if (mainHtmlContent) {
-            console.log('Main HTML Extracted!');
-            const $ = cheerio.load(mainHtmlContent);
-            const extractionId = this.urlParams.htmlIdentifiers.scriptId;
-            const $dataExtracted = $(extractionId).text();;
-
-            if ($dataExtracted) {
-                const adsArray = cleanArray(JSON.parse($dataExtracted).props.pageProps.ads);
-                console.log(`Was load a total of ${adsArray.length} ads from OLX`);
-
-                await throttleLoop(adsArray, async (element) => {
-                    console.log('Working in child html!')
-                    try {
-                        const childHtml = await extractHtml(element.url);
-                        const $ = cheerio.load(childHtml);
-                        const $descriptionExtracted = $('meta[property="og:description"]').attr('content');;;
-                        if ($descriptionExtracted) {
-                            element = {
-                                descriprion: $descriptionExtracted
-                            };
-                        }
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }, 0);
-                saveFile('../public/', 'latestAds.json', JSON.stringify(adsArray));
-            } else {
-                console.log('No data stracted from selected ID or Class');
-            }
-
-        } else {
+        if (!mainHtmlContent) {
             console.log('The HTML file returned blank, check the log for error details!');
+            return;
         }
-    }
+
+        console.log('Main HTML Extracted!');
+        const $ = cheerio.load(mainHtmlContent);
+        const $dataExtracted = $(htmlIdentifiers.scriptId).text();
+
+        if (!$dataExtracted) {
+            console.log('No data extracted from selected ID or Class');
+            return;
+        }
+
+        const adsArray = cleanArray(JSON.parse($dataExtracted).props.pageProps.ads).map(this.ad_obj_builder);
+        console.log(`Was load a total of ${adsArray.length} ads from OLX`);
+
+        await throttleLoop(adsArray, async (element) => {
+            console.log('Working in child html!');
+            try {
+                const childHtml = await extractHtml(element.url);
+                const $child = cheerio.load(childHtml);
+                const initialData = JSON.parse($child(htmlIdentifiers.initialDataId).attr('data-json')).ad;
+
+                element.description = $child(htmlIdentifiers.descriptionCatch).attr('content');
+                element.fipePrice = initialData.abuyFipePrice?.fipePrice || null;
+                element.averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
+            } catch (error) {
+                console.error(error);
+            }
+        }, 1000);
+
+        saveFile('../src/public/', 'latestAds.json', JSON.stringify(adsArray));
+    },
 };
