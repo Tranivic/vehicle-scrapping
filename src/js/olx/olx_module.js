@@ -5,8 +5,12 @@ const saveFile = require('../mixins/fs_functions').save_file;
 const cheerio = require('cheerio');
 
 module.exports = {
-    urlParams: {
+    config: {
         pageToFetch: 4,
+        limtOfAdsFetched: null
+    },
+
+    urlParams: {
         baseUrl: 'https://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
         localization: 'estado-rj/rio-de-janeiro-e-regiao',
         minPrice: 10000,
@@ -56,43 +60,47 @@ module.exports = {
     },
 
     async fetchAds(url) {
-        const extractionUrl = url;
-
-        const mainHtmlContent = await extractHtml(extractionUrl, {});
-        saveFile('../src/log/', 'main.html', mainHtmlContent);
-
-        if (!mainHtmlContent) {
-            console.log('The HTML file returned blank, check the log for error details!');
-            return;
-        }
-
-        console.log('Main HTML Extracted!');
-        const $ = cheerio.load(mainHtmlContent);
-        const $dataExtracted = $(this.htmlIdentifiers.scriptId).text();
-
-        if (!$dataExtracted) {
-            console.log('No data extracted from selected ID or Class');
-            return;
-        }
-
-        const adsArray = cleanArray(JSON.parse($dataExtracted).props.pageProps.ads).map(this.ad_obj_builder);
-        console.log(`Was load a total of ${adsArray.length} ads from OLX`);
-
-        await throttleLoop(adsArray, async (element) => {
-            console.log('Working in child html!');
-            try {
-                const childHtml = await extractHtml(element.url);
-                const $child = cheerio.load(childHtml);
-                const initialData = JSON.parse($child(this.htmlIdentifiers.initialDataId).attr('data-json')).ad;
-
-                element.description = $child(this.htmlIdentifiers.descriptionCatch).attr('content');
-                element.fipePrice = initialData.abuyFipePrice?.fipePrice || null;
-                element.averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
-            } catch (error) {
-                console.error(error);
+        try {
+            const extractionUrl = url;
+            const mainHtmlContent = await extractHtml(extractionUrl, {});
+            
+            if (!mainHtmlContent) {
+                throw new Error('The HTML file returned blank, check the log for error details!');
             }
-        }, 1000);
 
-        saveFile('../src/public/', 'latestAds.json', JSON.stringify(adsArray));
+            saveFile('../src/log/', 'main.html', mainHtmlContent);
+            console.log('Main HTML Extracted!');
+            const $ = cheerio.load(mainHtmlContent);
+            const $dataExtracted = $(this.htmlIdentifiers.scriptId).text();
+
+            if (!$dataExtracted) {
+                throw new Error(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website!`);
+            }
+
+            const adsArray = cleanArray(JSON.parse($dataExtracted).props.pageProps.ads).map(this.ad_obj_builder);
+            console.log(`Was load a total of ${adsArray.length} ads from OLX`);
+
+            // Fetchin html for ads
+            await throttleLoop(adsArray, async (element) => {
+                console.log('Working in child html!');
+                try {
+                    const childHtml = await extractHtml(element.url, {});
+                    const $child = cheerio.load(childHtml);
+                    const initialData = JSON.parse($child(this.htmlIdentifiers.initialDataId).attr('data-json')).ad;
+
+                    element.description = $child(this.htmlIdentifiers.descriptionCatch).attr('content');
+                    element.fipePrice = initialData.abuyFipePrice?.fipePrice || null;
+                    element.averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
+                } catch (error) {
+                    console.error(error);
+                }
+            }, 1000);
+
+            saveFile('../src/public/', 'latestAds.json', JSON.stringify(adsArray));
+
+        } catch (err) {
+            console.log(err);
+        }
+
     },
 };

@@ -5,8 +5,6 @@ exports.extract_html_content = async (url, params) => {
         const htmlContent = await axios.get(url, params);
         return htmlContent.data;
     } catch (err) {
-        console.log('deu ruim na estração do html');
-        console.log(err);
         return null;
     }
 };
