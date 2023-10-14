@@ -1,4 +1,7 @@
 const extractHtml = require('../functionality').extract_html_content;
+const cleanArray = require('../functionality').clean_itens_in_array_without_url;
+const throttleLoop = require('../functionality').throttle_loop;
+const saveFile = require('../mixins/fs_functions').save_file;
 const cheerio = require('cheerio');
 const fs = require('fs');
 
@@ -11,11 +14,11 @@ module.exports = {
         gnv: {
             gnvOptional: false,
             allowGnvOption: false,
-        }
-    },
-
-    htmlIdentifiers: {
-        scriptId: '#__NEXT_DATA__'
+        },
+        htmlIdentifiers: {
+            scriptId: '#__NEXT_DATA__',
+            descriptionClass: '.ad__sc-1sj3nln-1'
+        },
     },
 
     url_builder: function (urlObj) {
@@ -35,20 +38,34 @@ module.exports = {
         const mainHtmlContent = await extractHtml(extractionUrl, {});
 
         if (mainHtmlContent) {
-            console.log('HTML Extracted!');
+            console.log('Main HTML Extracted!');
             const $ = cheerio.load(mainHtmlContent);
-            const extractionId = this.htmlIdentifiers.scriptId;
+            const extractionId = this.urlParams.htmlIdentifiers.scriptId;
             const $dataExtracted = $(extractionId).text();;
-            const adsArray = JSON.parse($dataExtracted).props.pageProps.ads;
-            const filePath = './src/public/ads.json';
 
-            fs.writeFile(filePath, JSON.stringify(adsArray), (err) => {
-                if (err) {
-                    console.error('Error writing JSON file:', err);
-                } else {
-                    console.log('JSON data has been written to the file successfully.');
-                }
-            });
+            if ($dataExtracted) {
+                const adsArray = cleanArray(JSON.parse($dataExtracted).props.pageProps.ads);
+                console.log(`Was load a total of ${adsArray.length} ads from OLX`);
+
+                await throttleLoop(adsArray, async (element) => {
+                    console.log('Working in child html!')
+                    try {
+                        const childHtml = await extractHtml(element.url);
+                        const $ = cheerio.load(childHtml);
+                        const $descriptionExtracted = $('meta[property="og:description"]').attr('content');;;
+                        if ($descriptionExtracted) {
+                            element = {
+                                descriprion: $descriptionExtracted
+                            };
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }, 0);
+                saveFile('../public/', 'latestAds.json', JSON.stringify(adsArray));
+            } else {
+                console.log('No data stracted from selected ID or Class');
+            }
 
         } else {
             console.log('The HTML file returned blank, check the log for error details!');
