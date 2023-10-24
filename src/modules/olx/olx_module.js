@@ -1,8 +1,8 @@
-const extractHtml = require('../../js/functionality').extract_html_content;
 const cleanArray = require('../../js/functionality').clean_itens_in_array_without_url;
 const throttleLoop = require('../../js/functionality').throttle_loop;
 const saveFile = require('../../js/mixins/fs_functions').save_file;
-const getProxy = require('../../js/mixins/proxies').get_stored_proxy;
+const getProxy = require('../../js/proxies').get_stored_proxy;
+const getIp = require('../../js/proxies').get_ip;
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
@@ -12,7 +12,13 @@ module.exports = {
         pageToFetch: 4,
         limtOfAdsFetched: null
     },
-
+    proxys: {
+        uses: 0,
+        proxy: '',
+        protocol: 'http://',
+        user: 'rgzyljqe',
+        password: 'w6tmehewftx4',
+    },
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
         localization: 'estado-rj/rio-de-janeiro-e-regiao',
@@ -61,13 +67,24 @@ module.exports = {
             trackingSpecificData: objc.trackingSpecificData
         };
     },
+    async fetchAds(url, useProxys) {
 
-    async fetchAds(url) {
-        puppeteer.launch({ headless: true }).then(async browser => {
+        if (useProxys) {
+            this.proxys.proxy = getProxy(true);
+        }
+
+        puppeteer.launch({ headless: "new", args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.proxy}` : ''] }).then(async browser => {
             try {
                 const extractionUrl = url;
                 const scriptOlxTagId = this.htmlIdentifiers.scriptId;
                 const page = await browser.newPage();
+                await page.authenticate({
+                    username: this.proxys.user,
+                    password: this.proxys.password,
+                });
+                if (useProxys) {
+                    console.log('System is acessing from ip: ' + await getIp(page));
+                }
                 await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
                 const mainHtmlContent = await page.content();
 
@@ -93,7 +110,6 @@ module.exports = {
                     throw new Error(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website!`);
                 }
 
-                saveFile('../log/', 'script-tag.html', mainHtmlContent);
                 console.log('script tag extraida');
 
                 const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads).map(this.ad_obj_builder);
@@ -101,13 +117,12 @@ module.exports = {
 
                 // Fetchin html for ads
                 let counter = 1;
+                console.log('Working in child html...');
                 await throttleLoop(adsArray, async (element) => {
-                    console.log('Working in child html...');
                     try {
                         const page = await browser.newPage();
                         await page.goto(element.url, { waitUntil: 'domcontentloaded' });
                         await page.screenshot({ path: `../log/screenshots/ad[${counter}].png`, fullPage: true });
-
                         const extractedChildData = await page.evaluate((htmlIdentifiers) => {
                             const initialData = JSON.parse(document.querySelector(htmlIdentifiers.initialDataId).getAttribute('data-json')).ad;
                             const description = document.querySelector(htmlIdentifiers.descriptionCatch).getAttribute('content');
@@ -127,6 +142,7 @@ module.exports = {
                 saveFile('../log/', 'latestAds.json', JSON.stringify(adsArray));
                 await browser.close();
             } catch (err) {
+                console.log('Something is wrong!');
                 console.log(err);
             }
         });
