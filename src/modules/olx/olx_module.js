@@ -66,11 +66,11 @@ module.exports = {
         puppeteer.launch({ headless: true }).then(async browser => {
             try {
                 const extractionUrl = url;
-                const scriptOlxTagId = this.htmlIdentifiers.scriptId
-                const page = await browser.newPage()
-                await page.goto(extractionUrl , { waitUntil: 'domcontentloaded' })
-                const mainHtmlContent = await page.content()
-                
+                const scriptOlxTagId = this.htmlIdentifiers.scriptId;
+                const page = await browser.newPage();
+                await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
+                const mainHtmlContent = await page.content();
+
 
                 if (!mainHtmlContent) {
                     throw new Error('The HTML file returned blank, check the log for error details!');
@@ -78,34 +78,34 @@ module.exports = {
 
                 saveFile('../log/', 'main.html', mainHtmlContent);
                 console.log('Main HTML Extracted!');
-                
+
                 const dataExtracted = await page.evaluate((scriptId) => {
                     console.log(scriptId);
                     const scriptTag = document.getElementById(scriptId);
                     if (scriptTag) {
                         return scriptTag.textContent;
                     } else {
-                        return null;a
+                        return null; a;
                     }
                 }, scriptOlxTagId);
-    
+
                 if (!dataExtracted) {
                     throw new Error(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website!`);
                 }
 
                 saveFile('../log/', 'script-tag.html', mainHtmlContent);
-                console.log('script tag extraida')
+                console.log('script tag extraida');
 
                 const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads).map(this.ad_obj_builder);
                 console.log(`Was load a total of ${adsArray.length} ads from OLX`);
-    
+
                 // Fetchin html for ads
-                let counter = 1
+                let counter = 1;
                 await throttleLoop(adsArray, async (element) => {
                     console.log('Working in child html...');
                     try {
-                        const page = await browser.newPage()
-                        await page.goto(element.url , { waitUntil: 'domcontentloaded' })
+                        const page = await browser.newPage();
+                        await page.goto(element.url, { waitUntil: 'domcontentloaded' });
                         await page.screenshot({ path: `../log/screenshots/ad[${counter}].png`, fullPage: true });
 
                         const extractedChildData = await page.evaluate((htmlIdentifiers) => {
@@ -121,9 +121,9 @@ module.exports = {
                     } catch (error) {
                         console.error(error);
                     }
-                    counter++
+                    counter++;
                 }, 1000);
-    
+
                 saveFile('../log/', 'latestAds.json', JSON.stringify(adsArray));
                 await browser.close();
             } catch (err) {

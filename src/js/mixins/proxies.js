@@ -5,7 +5,7 @@ exports.get_stored_proxy = (randomize, proxyIndex) => {
 
     if (randomize) {
         const randomNumber = generateRandomNamber(1, proxyList.length);
-        console.log(`Proxy selected for extract: ${randomNumber} - ${proxyList[randomNumber]}`)
+        console.log(`Proxy selected for extract: ${randomNumber} - ${proxyList[randomNumber]}`);
         return proxyList[randomNumber];
     }
     return proxyList[proxyIndex];
