@@ -1,10 +1,17 @@
 const axios = require('axios');
 
-exports.extract_html_content = async (url, params) => {
+exports.extract_html_content = async (url, customProxy) => {
     try {
-        const htmlContent = await axios.get(url, params);
-        return htmlContent.data;
+        const response = await axios.get(url, {
+            proxy: {
+                host: customProxy.split(':')[0],
+                port: parseInt(customProxy.split(':')[1]),
+            },
+        });
+        console.log(response.data)
+        return response.data;
     } catch (err) {
+        console.error('Erro ao extrair conteúdo HTML:', err);
         return null;
     }
 };
