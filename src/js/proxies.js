@@ -4,7 +4,7 @@ exports.get_stored_proxy = (randomize, proxyIndex) => {
     const proxyList = require('../../public/proxies/proxies.json');
 
     if (randomize) {
-        const randomNumber = generateRandomNamber(1, proxyList.length);
+        const randomNumber = generateRandomNamber(1, proxyList.length - 1);
         console.log(`Proxy selected for extract: ${randomNumber} - ${proxyList[randomNumber]}`);
         return proxyList[randomNumber];
     }
