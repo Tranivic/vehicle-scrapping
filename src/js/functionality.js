@@ -1,6 +1,6 @@
 exports.clean_not_matchs = (array, searchTermRecived) => {
-    const cleanedArray = [];
     console.log('Cleaning array...');
+    const cleanedArray = [];
     array.forEach(element => {
         const hasUrl = element.url;
         const searchTermRecivedEmpty = !searchTermRecived.length;
@@ -10,6 +10,7 @@ exports.clean_not_matchs = (array, searchTermRecived) => {
             cleanedArray.push(element);
         }
     });
+    console.log(`Total of: ${cleanedArray.length} matchs.`);
     return cleanedArray;
 };
 

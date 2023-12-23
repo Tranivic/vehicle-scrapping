@@ -10,15 +10,16 @@ puppeteer.use(StealthPlugin());
 module.exports = {
     hits: [],
     config: {
-        limtOfAdsFetched: null
+        limitOfAdsFetched: null,
+        stuckedIndex: 0,
+        urlForUse: null,
+        isUsingProxy: null,
     },
     proxys: {
-        value: '',
-        useLimit: 10,
-        proxy: '',
+        value: null,
         protocol: 'http://',
-        user: 'rerzqshn',
-        password: 'gb2vrgd1idr4',
+        user: 'nlepdcuh',
+        password: '1kjd78xrz2t1',
     },
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
@@ -61,9 +62,12 @@ module.exports = {
             console.log('Url para extração: ' + url);
             return url;
         }
-        if(link){
+        if (link) {
             console.log('Link para extração: ' + link);
-            this.urlParams.searchTerm = ''
+            this.urlParams.searchTerm = '';
+            const params = new URLSearchParams(link);
+            this.searchTerm = params.get('q') || null;
+            console.log('Termo de busca é: ' + this.searchTerm)
             return link;
         }
     },
@@ -84,62 +88,22 @@ module.exports = {
             trackingSpecificData: objc.trackingSpecificData
         };
     },
-    async adJsonBuilder(array, receivedBrowser, customIndex, usingProxy) {
-        let index = customIndex;
-        let currentIndex = 0;
 
-        for await (const element of array) {
-            const page = await receivedBrowser.newPage();
-            if (currentIndex < customIndex) {
-                currentIndex++;
-            } else {
-                try {
-                    if (this.proxys.useLimit <= 0 && usingProxy) {
-                        this.rotateProxy();
-                        await this.autenticateProxy(page);
-                        return index;
-                    }
-                    await page.goto(element.url, { waitUntil: 'domcontentloaded' });
-                    await page.screenshot({ path: `./log/screenshots/ad[${index}].png`, fullPage: true });
-                    const extractedChildData = await page.evaluate((htmlIdentifiers) => {
-                        const initialData = JSON.parse(document.querySelector(htmlIdentifiers.initialDataId).getAttribute('data-json')).ad;
-                        const descriptionHtml = document.querySelector(htmlIdentifiers.descriptionHtml).getAttribute('content');
-                        const fipePrice = initialData.abuyFipePrice?.fipePrice || null;
-                        const averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
-                        return { descriptionHtml, fipePrice, averageOlxPrice };
-                    }, this.htmlIdentifiers);
-
-                    element.description = extractedChildData.descriptionHtml;
-                    element.descriptionFormated = extractedChildData.descriptionFormated;
-                    element.fipePrice = extractedChildData.fipePrice;
-                    element.averageOlxPrice = extractedChildData.averageOlxPrice;
-                    this.hits.push(element);
-                    index++;
-
-                    if (usingProxy) {
-                        this.proxys.useLimit--;
-                        console.log(`Proxy use remaning: ${this.proxys.useLimit}`);
-                    }
-                } catch (err) {
-                    console.log('Error in child extracting: ' + err.message);
-                    this.proxys.useLimit--;
-                    return index;
-                }
-            }
-            await page.close();
-        }
-        return null;
-    },
     async fetchAds(url, useProxys) {
         return new Promise(async (resolve, reject) => {
+            this.config.isUsingProxy = useProxys;
+            this.config.urlForUse = url;
+
             if (useProxys) {
-                this.proxys.value = getProxy(true, 0);
+                this.proxys.value = getProxy(false, 0);
             }
+
             puppeteer.launch({ headless: 'new', args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
                 try {
                     const extractionUrl = url;
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
                     const page = await browser.newPage();
+
                     if (useProxys) {
                         await this.autenticateProxy(page);
                     }
@@ -170,39 +134,68 @@ module.exports = {
                     const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, this.urlParams.searchTerm).map(this.ad_obj_builder);
                     console.log(`Was load a total of ${adsArray.length} matched ads from OLX`);
 
+                    saveFile('./log/', `testing.json`, JSON.stringify(adsArray));
+
                     if (!adsArray.length) {
                         throw new Error(`0 ads matches, canceling the run.`);
                     }
-                    // Fetchin html for ads
-                    console.log('Working in child html...');
-                    
-                    let indexStuck = 0;
-                    do {
-                        indexStuck = await this.adJsonBuilder(adsArray, browser, indexStuck, useProxys);
-                    } while (indexStuck);
 
-                    saveFile('./log/', `adsObj.json`, JSON.stringify(this.hits));
+                    console.log('Working in child html...');
+
+                    do {
+                        this.config.stuckedIndex = await this.adJsonBuilder(adsArray, browser, this.config.stuckedIndex, useProxys);
+                    } while (this.config.stuckedIndex);
+
                     resolve(this.hits);
                 } catch (err) {
                     console.log('Something is wrong: ' + err.message);
                     reject(false);
+                } finally {
+                    await browser.close();
                 }
-                await browser.close();
             });
         });
     },
-    rotateProxy() {
-        console.log('Proxy limit reached...');
-        this.proxys.value = getProxy(true);
-        this.proxys.useLimit = 10;
-        console.log('Changing to a new proxy...');
+
+    async adJsonBuilder(array, receivedBrowser, customIndex, usingProxy) {
+        let index = customIndex;
+        let currentIndex = 0;
+        for await (const element of array) {
+            if (currentIndex < customIndex) {
+                currentIndex++;
+            } else {
+                try {
+                    const page = await receivedBrowser.newPage();
+                    await page.goto(element.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+                    await page.screenshot({ path: `./log/screenshots/ad[${index}].png`, fullPage: true });
+                    const extractedChildData = await page.evaluate((htmlIdentifiers) => {
+                        const initialData = JSON.parse(document.querySelector(htmlIdentifiers.initialDataId).getAttribute('data-json')).ad;
+                        const descriptionHtml = document.querySelector(htmlIdentifiers.descriptionHtml).getAttribute('content');
+                        const fipePrice = initialData.abuyFipePrice?.fipePrice || null;
+                        const averageOlxPrice = initialData.abuyPriceRef?.price_p50 || null;
+                        return { descriptionHtml, fipePrice, averageOlxPrice };
+                    }, this.htmlIdentifiers);
+                    element.description = extractedChildData.descriptionHtml;
+                    element.descriptionFormated = extractedChildData.descriptionFormated;
+                    element.fipePrice = extractedChildData.fipePrice;
+                    element.averageOlxPrice = extractedChildData.averageOlxPrice;
+                    this.hits.push(element);
+                    index++;
+                    await page.close();
+                } catch (err) {
+                    console.log('Error in child extracting: ' + err.message);
+                    console.log(`Restarting from index: ${index}...`);
+                    return index;
+                }
+            }
+        }
+        return null;
     },
+
     async autenticateProxy(page) {
         await page.authenticate({
             username: this.proxys.user,
             password: this.proxys.password,
         });
-        this.proxys.useLimit--;
-        console.log(`Proxy use remaning: ${this.proxys.useLimit}`);
     }
 };
