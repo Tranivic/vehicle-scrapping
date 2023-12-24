@@ -14,9 +14,6 @@ exports.clean_not_matchs = (array, searchTermRecived) => {
     return cleanedArray;
 };
 
-
-
-
 exports.throttle_loop = async (array, callback, delay) => {
     for (const item of array) {
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -27,7 +24,7 @@ exports.throttle_loop = async (array, callback, delay) => {
 exports.ads_ranking = (adsArray) => {
     const keywords = require('../../public/keywords.json');
     const badWords = keywords.badWords;
-    const rankedAdsArray = []
+    const rankedAdsArray = [];
 
     adsArray.map(element => {
         let elementScore = 5;
@@ -47,7 +44,12 @@ exports.ads_ranking = (adsArray) => {
         element.score = elementScore;
         rankedAdsArray.push(element);
     });
+    return rankedAdsArray;
+};
 
-    return rankedAdsArray
+exports.get_search_term = (url) => {
+    const linkUrl = new URL(url);
+    const searchTerm = linkUrl.searchParams.get("q");
+    return searchTerm;
 };
 
