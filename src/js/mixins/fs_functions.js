@@ -11,3 +11,13 @@ exports.save_file = (filePath, fileName, fileData) => {
         }
     });
 };
+
+exports.create_folder = (folderName) =>{
+    try {
+        if (!fs.existsSync(folderName)) {
+          fs.mkdirSync(folderName);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+}
