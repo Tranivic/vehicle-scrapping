@@ -150,7 +150,7 @@ module.exports = {
                     resolve(rankedAdsHits);
                 } catch (err) {
                     console.log('Something is wrong: ' + err.message);
-                    reject(false);
+                    reject(err);
                 } finally {
                     await browser.close();
                 }
