@@ -96,7 +96,7 @@ module.exports = {
                 this.proxys.value = getProxy(false, 0);
             }
 
-            puppeteer.launch({ headless: false, args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
+            puppeteer.launch({ headless: 'new', args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
                 try {
                     const extractionUrl = url;
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
