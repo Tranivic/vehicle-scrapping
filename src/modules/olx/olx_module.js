@@ -4,6 +4,8 @@ const saveFile = require('../../js/mixins/fs_functions').save_file;
 const getIp = require('../../js/proxies').get_ip;
 const getProxy = require('../../js/proxies').get_stored_proxy;
 const puppeteer = require('puppeteer-extra');
+const rankedAds = require('../../js/functionality').ads_ranking;
+const getSearchTerm = require('../../js/functionality').get_search_term;
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
@@ -24,10 +26,10 @@ module.exports = {
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
         localization: 'estado-rj/rio-de-janeiro-e-regiao',
-        searchTerm: 'creta',
-        minPrice: 20000,
-        maxPrice: 70000,
-        fromYear: 2001,
+        searchTerm: '',
+        minPrice: 0,
+        maxPrice: 0,
+        fromYear: 0,
         gnv: {
             gnvOptional: false,
             allowGnvOption: false,
@@ -64,10 +66,6 @@ module.exports = {
         }
         if (link) {
             console.log('Link para extração: ' + link);
-            this.urlParams.searchTerm = '';
-            const params = new URLSearchParams(link);
-            this.searchTerm = params.get('q') || null;
-            console.log('Termo de busca é: ' + this.searchTerm)
             return link;
         }
     },
@@ -98,10 +96,12 @@ module.exports = {
                 this.proxys.value = getProxy(false, 0);
             }
 
-            puppeteer.launch({ headless: 'new', args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
+            puppeteer.launch({ headless: false, args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
                 try {
                     const extractionUrl = url;
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
+                    const searchTermInUrl = getSearchTerm(url)
+                    console.log('The search term is: ' + searchTermInUrl)
                     const page = await browser.newPage();
 
                     if (useProxys) {
@@ -131,11 +131,11 @@ module.exports = {
                         throw new Error(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website!`);
                     }
 
-                    const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, this.urlParams.searchTerm).map(this.ad_obj_builder);
+                    const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, searchTermInUrl).map(this.ad_obj_builder);
+                    
                     console.log(`Was load a total of ${adsArray.length} matched ads from OLX`);
 
-                    saveFile('./log/', `testing.json`, JSON.stringify(adsArray));
-
+                    
                     if (!adsArray.length) {
                         throw new Error(`0 ads matches, canceling the run.`);
                     }
@@ -146,7 +146,8 @@ module.exports = {
                         this.config.stuckedIndex = await this.adJsonBuilder(adsArray, browser, this.config.stuckedIndex, useProxys);
                     } while (this.config.stuckedIndex);
 
-                    resolve(this.hits);
+                    const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
+                    resolve(rankedAdsHits);
                 } catch (err) {
                     console.log('Something is wrong: ' + err.message);
                     reject(false);
