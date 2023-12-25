@@ -19,6 +19,7 @@ module.exports = {
     },
     proxys: {
         value: null,
+        usage: 0,
         protocol: 'http://',
         user: 'nlepdcuh',
         password: '1kjd78xrz2t1',
@@ -87,27 +88,19 @@ module.exports = {
         };
     },
 
-    async fetchAds(url, useProxys) {
+    async extractMainData(useProxys, extractionUrl) {
         return new Promise(async (resolve, reject) => {
-            this.config.isUsingProxy = useProxys;
-            this.config.urlForUse = url;
-
-            if (useProxys) {
-                this.proxys.value = getProxy(false, 0);
-            }
-
-            puppeteer.launch({ headless: 'new', args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
-                try {
-                    const extractionUrl = url;
-                    const scriptOlxTagId = this.htmlIdentifiers.scriptId;
-                    const searchTermInUrl = getSearchTerm(url)
-                    console.log('The search term is: ' + searchTermInUrl)
+            try {
+                puppeteer.launch({ headless: false, args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
                     const page = await browser.newPage();
-
                     if (useProxys) {
                         await this.autenticateProxy(page);
                     }
-
+                    const ip = await getIp(page)
+                    console.log("IP Acessing from extractMainData function: "+ ip)
+                    const scriptOlxTagId = this.htmlIdentifiers.scriptId;
+                    const searchTermInUrl = getSearchTerm(extractionUrl);
+                    console.log('The search term is: ' + searchTermInUrl);
                     await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
                     const mainHtmlContent = await page.content();
 
@@ -132,33 +125,21 @@ module.exports = {
                     }
 
                     const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, searchTermInUrl).map(this.ad_obj_builder);
-                    
                     console.log(`Was load a total of ${adsArray.length} matched ads from OLX`);
-
-                    
-                    if (!adsArray.length) {
-                        throw new Error(`0 ads matches, canceling the run.`);
-                    }
-
-                    console.log('Working in child html...');
-
-                    do {
-                        this.config.stuckedIndex = await this.adJsonBuilder(adsArray, browser, this.config.stuckedIndex, useProxys);
-                    } while (this.config.stuckedIndex);
-
-                    const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
-                    resolve(rankedAdsHits);
-                } catch (err) {
-                    console.log('Something is wrong: ' + err.message);
-                    reject(err);
-                } finally {
                     await browser.close();
-                }
-            });
+                    if (!adsArray.length) {
+                        reject('No ads fetched!');
+                    }
+                    resolve(adsArray)
+                });
+
+            } catch (err) {
+                reject('Something is wrong: ' + err.message);
+            }
         });
     },
 
-    async adJsonBuilder(array, receivedBrowser, customIndex, usingProxy) {
+    async adJsonBuilder(array, customIndex, usingProxy) {
         let index = customIndex;
         let currentIndex = 0;
         for await (const element of array) {
@@ -166,7 +147,16 @@ module.exports = {
                 currentIndex++;
             } else {
                 try {
-                    const page = await receivedBrowser.newPage();
+                    if (usingProxy) {
+                        this.proxys.value = getProxy(true, null);
+                    }
+                    const browser = await puppeteer.launch({ headless: false, args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] });
+                    const page = await browser.newPage();
+                    if (usingProxy) {
+                        await this.autenticateProxy(page);
+                    }
+                    const ip = await getIp(page)
+                    console.log("IP Acessing from adJsonBuilder function: "+ ip)
                     await page.goto(element.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
                     await page.screenshot({ path: `./log/screenshots/ad[${index}].png`, fullPage: true });
                     const extractedChildData = await page.evaluate((htmlIdentifiers) => {
@@ -183,6 +173,7 @@ module.exports = {
                     this.hits.push(element);
                     index++;
                     await page.close();
+                    await browser.close();
                 } catch (err) {
                     console.log('Error in child extracting: ' + err.message);
                     console.log(`Restarting from index: ${index}...`);
@@ -197,6 +188,36 @@ module.exports = {
         await page.authenticate({
             username: this.proxys.user,
             password: this.proxys.password,
+        });
+    },
+
+    async olxScrapRun(url, useProxys) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                this.config.isUsingProxy = useProxys;
+                this.config.urlForUse = url;
+                if (useProxys) {
+                    this.proxys.value = getProxy(true, null);
+                }
+                const extractionUrl = url;
+                console.log("The extraction url is" + " " + extractionUrl);
+                const mainArray = await this.extractMainData(true, extractionUrl);
+
+
+                do {
+                    try {
+                        this.config.stuckedIndex = await this.adJsonBuilder(mainArray, this.config.stuckedIndex, useProxys);
+                    } catch (err) {
+                        console.error('Error in adJsonBuilder loop:', err);
+                        break;
+                    }
+                } while (this.config.stuckedIndex);
+                
+                const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
+                resolve(rankedAdsHits);
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 };
