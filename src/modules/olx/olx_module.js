@@ -19,10 +19,11 @@ module.exports = {
     },
     proxys: {
         value: null,
+        useLimit: 50,
         usage: 0,
         protocol: 'http://',
-        user: 'nlepdcuh',
-        password: '1kjd78xrz2t1',
+        user: 'tntexggl',
+        password: 'xhmmlenq8uty',
     },
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
@@ -91,7 +92,7 @@ module.exports = {
     async extractMainData(useProxys, extractionUrl) {
         return new Promise(async (resolve, reject) => {
             try {
-                puppeteer.launch({ headless: false, args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
+                puppeteer.launch({ headless: 'new', args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
                     const page = await browser.newPage();
                     if (useProxys) {
                         await this.autenticateProxy(page);
@@ -100,7 +101,6 @@ module.exports = {
                     console.log("IP Acessing from extractMainData function: "+ ip)
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
                     const searchTermInUrl = getSearchTerm(extractionUrl);
-                    console.log('The search term is: ' + searchTermInUrl);
                     await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
                     const mainHtmlContent = await page.content();
 
@@ -148,9 +148,9 @@ module.exports = {
             } else {
                 try {
                     if (usingProxy) {
-                        this.proxys.value = getProxy(true, null);
+                        this.rotateProxy();
                     }
-                    const browser = await puppeteer.launch({ headless: false, args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] });
+                    const browser = await puppeteer.launch({ headless: 'new', args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] });
                     const page = await browser.newPage();
                     if (usingProxy) {
                         await this.autenticateProxy(page);
@@ -200,7 +200,6 @@ module.exports = {
                     this.proxys.value = getProxy(true, null);
                 }
                 const extractionUrl = url;
-                console.log("The extraction url is" + " " + extractionUrl);
                 const mainArray = await this.extractMainData(true, extractionUrl);
 
 
@@ -219,5 +218,24 @@ module.exports = {
                 reject(err);
             }
         });
+    },
+    rotateProxy(){
+        let proxyLimit = this.proxys.useLimit;
+        let proxyUsage = this.proxys.usage;
+    
+        console.log("Proxy Limit:", proxyLimit);
+        console.log("Current Proxy Usage:", proxyUsage);
+    
+        if(proxyUsage > proxyLimit){
+            this.proxys.value = getProxy(true, null);
+            this.proxys.usage = 0;
+            console.log("Proxy changed. New proxy value:", this.proxys.value);
+            return;
+        }
+    
+        proxyUsage--;
+        this.proxys.usage = proxyUsage;
+    
+        console.log("Updated Proxy Usage:", proxyUsage);
     }
 };
