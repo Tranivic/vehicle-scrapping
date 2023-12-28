@@ -50,6 +50,7 @@ exports.ads_ranking = (adsArray) => {
 exports.get_search_term = (url) => {
     const linkUrl = new URL(url);
     const searchTerm = linkUrl.searchParams.get("q");
+    console.log('The search term is: ' + searchTerm);
     return searchTerm;
 };
 
