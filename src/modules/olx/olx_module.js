@@ -233,7 +233,7 @@ module.exports = {
             return;
         }
     
-        proxyUsage--;
+        proxyUsage++;
         this.proxys.usage = proxyUsage;
     
         console.log("Updated Proxy Usage:", proxyUsage);
