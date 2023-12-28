@@ -1,12 +1,21 @@
-// URLBASE: https://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/estado-rj?pe=40000&ps=12000&hgnv=true
-// 1º definir a url com todos os parametros necessÃ¡rios.
-// 2º eu vou requisitar o HTMl do site de destino.
-// 3º irei achar os links uteis.
-// 4º irei abrir os links uteis.
-// 5º irei analizar as informaÃ§Ãµes uteis.
-// 6º irei esportar as informaÃ§Ãµes Ãºteis.
+const olxModule = require('./modules/olx/olx_module');
+const saveFile = require('./js/mixins/fs_functions').save_file;
+const createFolder = require('./js/mixins/fs_functions').create_folder
 
+// Run
+async function run(pageNumber) {
+    try {
+        createFolder('./log')
+        createFolder('./log/screenshots')
+        let storedAds;
+        // storedAds = await olxModule.olxScrapRun(olxModule.url_builder(null, `https://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/estado-rj?ctp=5&ctp=8&me=80000&ms=5000&pe=65000&q=creta&rs=63&hgnv=false&o=${pageNumber}`), true);
+        // storedAds = require('../log/adsObj.json');
+        // Testing with less results
+        storedAds = await olxModule.olxScrapRun(olxModule.url_builder(null, `https://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/estado-rj?me=80000&ms=5000&pe=65000&q=fluence&rs=63&o=${pageNumber}`), true);
+        saveFile('./log/', `result_page_${pageNumber}.json`, JSON.stringify(storedAds));
+    } catch (err) {
+        console.log('Run failed: ' + err.message);
+    }
+}
 
-// Imports
-const olxModule = require('./js/olx/olx_module');
-olxModule.fetchAds(olxModule.url_builder(olxModule.urlParams));
+run(1);
