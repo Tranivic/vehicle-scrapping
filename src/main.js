@@ -1,4 +1,4 @@
-const olxModule = require('./modules/olx/olx_module');
+const olxModule = require('./modules/olx_module');
 const saveFile = require('./js/mixins/fs_functions').save_file;
 const createFolder = require('./js/mixins/fs_functions').create_folder
 
