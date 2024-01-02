@@ -1,12 +1,13 @@
-const cleanArray = require('../../js/functionality').clean_not_matchs;
-const throttleLoop = require('../../js/functionality').throttle_loop;
-const saveFile = require('../../js/mixins/fs_functions').save_file;
-const getIp = require('../../js/proxies').get_ip;
-const getProxy = require('../../js/proxies').get_stored_proxy;
+const cleanArray = require('../js/functionality').clean_not_matchs;
+const throttleLoop = require('../js/functionality').throttle_loop;
+const saveFile = require('../js/mixins/fs_functions').save_file;
+const getIp = require('../js/proxies').get_ip;
+const getProxy = require('../js/proxies').get_stored_proxy;
 const puppeteer = require('puppeteer-extra');
-const rankedAds = require('../../js/functionality').ads_ranking;
-const getSearchTerm = require('../../js/functionality').get_search_term;
+const rankedAds = require('../js/functionality').ads_ranking;
+const getSearchTerm = require('../js/functionality').get_search_term;
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const puppeteerModule = require('../js/plugins/puppeteer')
 puppeteer.use(StealthPlugin());
 
 module.exports = {
@@ -22,8 +23,8 @@ module.exports = {
         useLimit: 50,
         usage: 0,
         protocol: 'http://',
-        user: 'tntexggl',
-        password: 'xhmmlenq8uty',
+        user: 'ismkmycd',
+        password: 'ug4a5ubsm23k',
     },
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
@@ -96,9 +97,10 @@ module.exports = {
                     const page = await browser.newPage();
                     if (useProxys) {
                         await this.autenticateProxy(page);
+                        await puppeteerModule.prevent_resource_download(page)
                     }
-                    const ip = await getIp(page)
-                    console.log("IP Acessing from extractMainData function: "+ ip)
+                    // const ip = await getIp(page)
+                    // console.log("IP Acessing from extractMainData function: "+ ip)
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
                     const searchTermInUrl = getSearchTerm(extractionUrl);
                     await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
@@ -154,9 +156,10 @@ module.exports = {
                     const page = await browser.newPage();
                     if (usingProxy) {
                         await this.autenticateProxy(page);
+                        await puppeteerModule.prevent_resource_download(page)
                     }
-                    const ip = await getIp(page)
-                    console.log("IP Acessing from adJsonBuilder function: "+ ip)
+                    // const ip = await getIp(page)
+                    // console.log("IP Acessing from adJsonBuilder function: "+ ip)
                     await page.goto(element.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
                     await page.screenshot({ path: `./log/screenshots/ad[${index}].png`, fullPage: true });
                     const extractedChildData = await page.evaluate((htmlIdentifiers) => {
