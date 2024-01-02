@@ -14,7 +14,6 @@
         "SIMULAçÃO DE ENTRADA",
         "SUGESTÃO DE FINANCIAMENTO",
         "SOMANDO",
-        "SUGESTÃO DE FINANCIAMENTO",
         "VALOR EXPOSTO",
         "SOMANDO",
         "BLINDADO",
@@ -37,6 +36,11 @@
         "sugestão",
         "carro da seguradora",
         "seguradora",
-        "batido"
+        "batido",
+        "colisão",
+        "colisao",
+        "recuperado",
+        "retoque",
+        "pra fazer"
     ]
 }
