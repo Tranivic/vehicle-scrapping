@@ -23,8 +23,8 @@ module.exports = {
         useLimit: 50,
         usage: 0,
         protocol: 'http://',
-        user: 'tntexggl',
-        password: 'xhmmlenq8uty',
+        user: 'ismkmycd',
+        password: 'ug4a5ubsm23k',
     },
     urlParams: {
         baseUrl: 'http://www.olx.com.br/autos-e-pecas/carros-vans-e-utilitarios/',
