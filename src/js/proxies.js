@@ -17,3 +17,23 @@ exports.get_ip = async (page) => {
     const ip = await page.evaluate(body => body.textContent, body);
     return JSON.parse(ip).origin;
 };
+
+
+exports.rotate_proxy = (proxyLimit, proxyUsage) => {
+    let currentProxyUsage = proxyUsage;
+    if (currentProxyUsage >= proxyLimit) {
+        const newProxyValue = this.get_stored_proxy(true, null);
+        console.log("Proxy changed. New proxy value:", newProxyValue);
+        return {  newProxyValue: newProxyValue };
+    }
+    console.log('Proxy not changed, this is the use: '+ currentProxyUsage)
+    return { newProxyValue: null };
+};
+
+
+exports.autenticate_proxy = async (page, username, password) => {
+    await page.authenticate({
+        username: username,
+        password: password,
+    });
+};
