@@ -10,7 +10,6 @@ exports.clean_not_matchs = (array, searchTermRecived) => {
             cleanedArray.push(element);
         }
     });
-    console.log(`Total of: ${cleanedArray.length} matchs.`);
     return cleanedArray;
 };
 
