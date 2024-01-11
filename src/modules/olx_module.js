@@ -126,7 +126,6 @@ module.exports = {
                         this.proxys.usage++;
                     }
                     await page.goto(element.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-                    await page.screenshot({ path: `./log/screenshots/ad[${index}].png`, fullPage: true });
                     const extractedChildData = await page.evaluate((htmlIdentifiers) => {
                         const initialData = JSON.parse(document.querySelector(htmlIdentifiers.initialDataId).getAttribute('data-json')).ad;
                         const descriptionHtml = document.querySelector(htmlIdentifiers.descriptionHtml).getAttribute('content');
