@@ -1,12 +1,12 @@
-const cleanArray = require('../js/functionality').clean_not_matchs;
+const cleanArray = require('@mixins/functionality').clean_not_matchs;
 const puppeteer = require('puppeteer-extra');
-const rankedAds = require('../js/functionality').ads_ranking;
-const getSearchTerm = require('../js/functionality').get_search_term;
-const puppeteerModule = require('../js/plugins/puppeteer');
-const rotateProxy = require('../js/proxies').rotate_proxy;
-const autenticateProxy = require('../js/proxies').autenticate_proxy;
-const getIp = require('../js/proxies').get_ip;
-const getProxy = require('../js/proxies').get_stored_proxy;
+const rankedAds = require('@mixins/functionality').ads_ranking;
+const getSearchTerm = require('@mixins/functionality').get_search_term;
+const puppeteerModule = require('@plugins/puppeteer');
+const rotateProxy = require('@mixins/proxies').rotate_proxy;
+const autenticateProxy = require('@mixins/proxies').autenticate_proxy;
+const getIp = require('@mixins/proxies').get_ip;
+const getProxy = require('@mixins/proxies').get_stored_proxy;
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 puppeteer.use(StealthPlugin());

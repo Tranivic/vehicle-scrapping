@@ -21,7 +21,7 @@ exports.throttle_loop = async (array, callback, delay) => {
 };
 
 exports.ads_ranking = (adsArray) => {
-    const keywords = require('../../public/keywords.json');
+    const keywords = require('@public/keywords.json');
     const badWords = keywords.badWords;
     const rankedAdsArray = [];
 

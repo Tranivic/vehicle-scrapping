@@ -1,6 +1,7 @@
-const olxModule = require('./modules/olx_module');
-const saveFile = require('./js/mixins/fs_functions').save_file;
-const createFolder = require('./js/mixins/fs_functions').create_folder;
+require('module-alias/register');
+const olxModule = require('@modules/olx_module');
+const saveFile = require('@mixins/fs_functions').save_file;
+const createFolder = require('@mixins/fs_functions').create_folder;
 
 // Run
 async function run(pageNumber) {
