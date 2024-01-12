@@ -62,7 +62,7 @@ module.exports = {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
                         await puppeteerModule.prevent_resource_download(page);
                         const ip = await getIp(page)
-                        console.log(`Acessing from im ${ip}`)
+                        console.log(`Acessing from ip ${ip}`)
                         this.proxys.usage++;
                     }
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
