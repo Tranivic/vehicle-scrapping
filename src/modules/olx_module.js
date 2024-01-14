@@ -36,20 +36,22 @@ module.exports = {
         return link;
     },
 
-    adObjctBuilder(objc) {
+    adadObjecttBuilder(adObject) {
         return {
-            subject: objc.subject,
-            title: objc.title,
+            subject: adObject.subject,
+            title: adObject.title,
             description: '',
-            price: parseInt(objc.price.replace(/[^0-9]/g, '')),
+            price: parseInt(adObject.price.replace(/[^0-9]/g, '')),
             fipePrice: null,
             averageOlxPrice: null,
-            listId: objc.listId,
-            url: objc.url,
-            thumbnail: objc.thumbnail,
-            location: objc.location,
-            vehiclePills: objc.vehiclePills,
-            trackingSpecificData: objc.trackingSpecificData
+            listId: adObject.listId,
+            url: adObject.url,
+            thumbnail: adObject.thumbnail,
+            location: adObject.location,
+            trackingSpecificData: adObject.trackingSpecificData,
+            images: adObject.images,
+            imagesCount: adObject.images.length,
+            properties: adObject.properties
         };
     },
 
@@ -61,8 +63,8 @@ module.exports = {
                     if (useProxys) {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
                         await puppeteerModule.prevent_resource_download(page);
-                        const ip = await getIp(page)
-                        console.log(`Acessing from ip ${ip}`)
+                        const ip = await getIp(page);
+                        console.log(`Acessing from ip ${ip}`);
                         this.proxys.usage++;
                     }
                     const scriptOlxTagId = this.htmlIdentifiers.scriptId;
@@ -70,9 +72,12 @@ module.exports = {
                     await page.goto(extractionUrl, { waitUntil: 'domcontentloaded' });
                     const mainHtmlContent = await page.content();
                     if (!mainHtmlContent) {
-                        reject('HTML is empty');
+                        await browser.close();
+                        console.log('HTML is empty');
+                        resolve(null);
+                    } else {
+                        console.log('Main HTML Extracted!');
                     }
-                    console.log('Main HTML Extracted!');
                     const dataExtracted = await page.evaluate((scriptId) => {
                         const scriptTag = document.getElementById(scriptId);
                         if (scriptTag) {
@@ -82,21 +87,24 @@ module.exports = {
                         }
                     }, scriptOlxTagId);
 
-                    if (!dataExtracted) {
-                        resolve(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website!`);
-                        return
+                    if (dataExtracted === null) {
+                        await browser.close();
+                        console.log(`No data extracted from selected ID or Class, check the ${this.htmlIdentifiers.scriptId} if its still equal to OLX website! or proxy problem!`);
+                        resolve(null);
+                        return;
                     }
-                    const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, searchTermInUrl).map(this.adObjctBuilder);
+                    const adsArray = cleanArray(JSON.parse(dataExtracted).props.pageProps.ads, searchTermInUrl).map(this.adadObjecttBuilder);
                     console.log(`Was load a total of ${adsArray.length} matched ads from OLX`);
                     await browser.close();
                     if (!adsArray.length) {
-                        reject('No ads fetched!');
+                        console.log('No ads fetched!');
+                        resolve(null);
                     }
                     resolve(adsArray);
                 });
 
             } catch (err) {
-                reject('Something is wrong: ' + err.message);
+                reject('Something is wrong: ' + err);
             }
         });
     },
@@ -121,8 +129,8 @@ module.exports = {
                     if (usingProxy) {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
                         await puppeteerModule.prevent_resource_download(page);
-                        const ip = await getIp(page)
-                        console.log(`Acessing from ip ${ip}`)
+                        const ip = await getIp(page);
+                        console.log(`Acessing from ip ${ip}`);
                         this.proxys.usage++;
                     }
                     await page.goto(element.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -143,7 +151,7 @@ module.exports = {
                     await page.close();
                     await browser.close();
                 } catch (err) {
-                    console.log('Error in child extracting: ' + err.message);
+                    console.log('Error in child extracting: ' + err);
                     console.log(`Restarting from index: ${index}...`);
                     return index;
                 }
@@ -152,18 +160,35 @@ module.exports = {
         return null;
     },
 
-    async olxScrapRun(url, useProxys) {
+    async olxScrapRun(url, useProxys, paginate) {
         return new Promise(async (resolve, reject) => {
             try {
                 if (useProxys) {
                     this.proxys.value = getProxy(true, null);
                 }
-                const extractionUrl = url;
-                const mainArrayResponse = await this.extractMainData(true, extractionUrl);
-                if(typeof mainArrayResponse === String){
-                    reject(mainArrayResponse)
+                let mainArrayResponse = await this.extractMainData(true, url);
+                if (!mainArrayResponse) {
+                    reject();
+                    return;
                 }
-                console.log("Scrapping ads from olx...");
+                if (paginate && mainArrayResponse.length === 50) {
+                    console.log('Paginating...');
+                    for (let page = 2; page <= 200; page++) {
+                        let newUrl = new URL(url);
+                        newUrl.searchParams.set("o", page);
+                        console.log(`New url for extract page ${page}: ${newUrl}`);
+                        let pageArrayResponse = await this.extractMainData(true, newUrl);
+                        if (pageArrayResponse) {
+                            console.log('Arrays merged');
+                            mainArrayResponse = mainArrayResponse.concat(pageArrayResponse);
+                        }
+                        if (!pageArrayResponse || pageArrayResponse.length < 50) {
+                            console.log('Stoping pagination');
+                            break;
+                        }
+                    }
+                }
+
                 do {
                     try {
                         this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
@@ -171,11 +196,11 @@ module.exports = {
                         console.error('Error in adJsonBuilder loop:', err);
                         break;
                     }
-                } while (this.config.stuckedIndex);
+                } while (this.config.stuckedIndex || this.config.stuckedIndex === 0);
                 const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
                 resolve(rankedAdsHits);
             } catch (err) {
-                reject(err);
+                reject("Error in olxScrapRun function" + err);
             }
         });
     },
