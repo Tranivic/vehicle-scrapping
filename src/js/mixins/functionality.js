@@ -10,7 +10,6 @@ exports.clean_not_matchs = (array, searchTermRecived) => {
             cleanedArray.push(element);
         }
     });
-    console.log(`Total of: ${cleanedArray.length} matchs.`);
     return cleanedArray;
 };
 
@@ -22,7 +21,7 @@ exports.throttle_loop = async (array, callback, delay) => {
 };
 
 exports.ads_ranking = (adsArray) => {
-    const keywords = require('../../public/keywords.json');
+    const keywords = require('@public/keywords.json');
     const badWords = keywords.badWords;
     const rankedAdsArray = [];
 
