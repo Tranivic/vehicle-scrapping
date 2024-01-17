@@ -1,16 +1,18 @@
 {
-  "dependencies": {
-    "axios": "^1.5.1",
-    "module-alias": "^2.2.3",
-    "puppeteer": "^21.4.1",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
-  },
   "_moduleAliases": {
     "@": ".",
     "@modules": "./src/modules",
     "@mixins": "./src/js/mixins",
     "@plugins": "./src/js/plugins",
     "@public": "./public"
+  },
+  "dependencies": {
+    "axios": "^1.5.1",
+    "module-alias": "^2.2.3",
+    "puppeteer": "^21.4.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "@json2csv/node": "^7.0.4",
+    "@json2csv/plainjs": "^7.0.4"
   }
 }
