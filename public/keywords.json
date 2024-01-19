@@ -1,5 +1,5 @@
 {
-    "badWords": [
+    "fakePriceWords": [
         "ACRESCENTAR",
         "PEQUENA ENTRADA",
         "VALOR REFERENTE",
@@ -16,10 +16,6 @@
         "SOMANDO",
         "VALOR EXPOSTO",
         "SOMANDO",
-        "BLINDADO",
-        "Blindagem",
-        "VEÍCULO BLINDADO",
-        "BLINDAGEN",
         "REFERE",
         "valor simulado",
         "quitação",
@@ -28,20 +24,6 @@
         "Passo financiamento",
         "assume",
         "valor financiado",
-        "leilão",
-        "passagem por leilão",
-        "possui passagem",
-        "leilão",
-        "leilao",
-        "sugestão",
-        "carro da seguradora",
-        "seguradora",
-        "batido",
-        "colisão",
-        "colisao",
-        "recuperado",
-        "retoque",
-        "pra fazer",
         "ENTRADA de"
     ]
 }
