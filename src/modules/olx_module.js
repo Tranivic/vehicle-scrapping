@@ -1,6 +1,6 @@
 const cleanArray = require('@mixins/functionality').clean_not_matchs;
 const puppeteer = require('puppeteer-extra');
-const rankedAds = require('@mixins/functionality').ads_ranking;
+const setIsFakePriceAdsArray = require('@mixins/functionality').set_is_fake_price;
 const getSearchTerm = require('@mixins/functionality').get_search_term;
 const puppeteerModule = require('@plugins/puppeteer');
 const rotateProxy = require('@mixins/proxies').rotate_proxy;
@@ -37,8 +37,7 @@ module.exports = {
     },
 
     adadObjecttBuilder(adObject) {
-        return {
-            subject: adObject.subject,
+        const objectBuilded = {
             title: adObject.title,
             description: '',
             price: parseInt(adObject.price.replace(/[^0-9]/g, '')),
@@ -48,11 +47,19 @@ module.exports = {
             url: adObject.url,
             thumbnail: adObject.thumbnail,
             location: adObject.location,
-            trackingSpecificData: adObject.trackingSpecificData,
-            images: adObject.images,
             imagesCount: adObject.images.length,
-            properties: adObject.properties
-        };
+        }
+        if ('trackingSpecificData' in adObject) {
+            adObject.trackingSpecificData.forEach((prop) => {
+                objectBuilded[prop.key] = prop.value;
+            });
+        }
+        if ('properties' in adObject) {
+            adObject.properties.forEach((prop) => {
+                objectBuilded[prop.name] = prop.value;
+            });
+        }
+        return objectBuilded
     },
 
     async extractMainData(useProxys, extractionUrl) {
@@ -197,8 +204,8 @@ module.exports = {
                         break;
                     }
                 } while (this.config.stuckedIndex || this.config.stuckedIndex === 0);
-                const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
-                resolve(rankedAdsHits);
+                const setIsFakePriceAdsArrayHits = setIsFakePriceAdsArray(this.hits, this.searchTerm);
+                resolve(setIsFakePriceAdsArrayHits);
             } catch (err) {
                 reject("Error in olxScrapRun function" + err);
             }
