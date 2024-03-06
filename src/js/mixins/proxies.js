@@ -21,14 +21,14 @@ exports.get_ip = async (page) => {
 };
 
 
-exports.rotate_proxy = (proxyLimit, proxyUsage) => {
+exports.rotate_proxy = (proxyLimit, proxyUsage, force) => {
     let currentProxyUsage = proxyUsage;
-    if (currentProxyUsage >= proxyLimit) {
-        const newProxyValue = this.get_stored_proxy(false, 6);
+    if (currentProxyUsage >= proxyLimit || force) {
+        const newProxyValue = this.get_stored_proxy(true, null);
         console.log("Proxy changed. New proxy value:", newProxyValue);
-        return {  newProxyValue: newProxyValue };
+        return { newProxyValue: newProxyValue };
     }
-    console.log('Proxy not changed, this is the use: '+ currentProxyUsage)
+    console.log('Proxy NOT changed, this is the use: ' + currentProxyUsage);
     return { newProxyValue: null };
 };
 
@@ -38,4 +38,8 @@ exports.autenticate_proxy = async (page, username, password) => {
         username: username,
         password: password,
     });
+};
+
+exports.force_proxy_rotate = async () => {
+    return this.rotate_proxy(0, 0, true);
 };

@@ -195,10 +195,21 @@ module.exports = {
                         }
                     }
                 }
-
+                let lastIndex = null;
+                let attempts = 0;
                 do {
                     try {
-                        this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
+                        if (attempts <= 10) {
+                            this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
+                            if (lastIndex !== this.config.stuckedIndex) {
+                                lastIndex = this.config.stuckedIndex;
+                                attempts = 0
+                            } else {
+                                attempts++;
+                            }
+                        } else {
+                            throw new Error('Attempts number exceded!');
+                        }
                     } catch (err) {
                         console.error('Error in adJsonBuilder loop:', err);
                         break;
