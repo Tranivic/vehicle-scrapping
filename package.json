@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start" : "node src/main.js"
+  },
   "_moduleAliases": {
     "@": ".",
     "@modules": "./src/modules",
