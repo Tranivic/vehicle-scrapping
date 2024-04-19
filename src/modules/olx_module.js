@@ -123,6 +123,7 @@ module.exports = {
             if (currentIndex < customIndex) {
                 currentIndex++;
             } else {
+                const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then();
                 try {
                     if (usingProxy) {
                         const newProxy = rotateProxy(this.proxys.useLimit, this.proxys.usage).newProxyValue;
@@ -131,7 +132,6 @@ module.exports = {
                             this.proxys.usage = 0;
                         }
                     }
-                    const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] });
                     const page = await browser.newPage();
                     if (usingProxy) {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
@@ -160,6 +160,8 @@ module.exports = {
                 } catch (err) {
                     console.log('Error in child extracting: ' + err);
                     console.log(`Restarting from index: ${index}...`);
+                    this.proxys.usage = this.proxys.usage < 8 ? 8 : this.proxys.usage;
+                    await browser.close();
                     return index;
                 }
             }
