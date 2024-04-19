@@ -1,6 +1,6 @@
 const cleanArray = require('@mixins/functionality').clean_not_matchs;
 const puppeteer = require('puppeteer-extra');
-const rankedAds = require('@mixins/functionality').ads_ranking;
+const setIsFakePriceAdsArray = require('@mixins/functionality').set_is_fake_price;
 const getSearchTerm = require('@mixins/functionality').get_search_term;
 const puppeteerModule = require('@plugins/puppeteer');
 const rotateProxy = require('@mixins/proxies').rotate_proxy;
@@ -37,8 +37,7 @@ module.exports = {
     },
 
     adadObjecttBuilder(adObject) {
-        return {
-            subject: adObject.subject,
+        const objectBuilded = {
             title: adObject.title,
             description: '',
             price: parseInt(adObject.price.replace(/[^0-9]/g, '')),
@@ -48,11 +47,19 @@ module.exports = {
             url: adObject.url,
             thumbnail: adObject.thumbnail,
             location: adObject.location,
-            trackingSpecificData: adObject.trackingSpecificData,
-            images: adObject.images,
             imagesCount: adObject.images.length,
-            properties: adObject.properties
-        };
+        }
+        if ('trackingSpecificData' in adObject) {
+            adObject.trackingSpecificData.forEach((prop) => {
+                objectBuilded[prop.key] = prop.value;
+            });
+        }
+        if ('properties' in adObject) {
+            adObject.properties.forEach((prop) => {
+                objectBuilded[prop.name] = prop.value;
+            });
+        }
+        return objectBuilded
     },
 
     async extractMainData(useProxys, extractionUrl) {
@@ -116,6 +123,7 @@ module.exports = {
             if (currentIndex < customIndex) {
                 currentIndex++;
             } else {
+                const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then();
                 try {
                     if (usingProxy) {
                         const newProxy = rotateProxy(this.proxys.useLimit, this.proxys.usage).newProxyValue;
@@ -124,7 +132,6 @@ module.exports = {
                             this.proxys.usage = 0;
                         }
                     }
-                    const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] });
                     const page = await browser.newPage();
                     if (usingProxy) {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
@@ -153,6 +160,8 @@ module.exports = {
                 } catch (err) {
                     console.log('Error in child extracting: ' + err);
                     console.log(`Restarting from index: ${index}...`);
+                    this.proxys.usage = this.proxys.usage < 8 ? 8 : this.proxys.usage;
+                    await browser.close();
                     return index;
                 }
             }
@@ -188,17 +197,28 @@ module.exports = {
                         }
                     }
                 }
-
+                let lastIndex = null;
+                let attempts = 0;
                 do {
                     try {
-                        this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
+                        if (attempts <= 10) {
+                            this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
+                            if (lastIndex !== this.config.stuckedIndex) {
+                                lastIndex = this.config.stuckedIndex;
+                                attempts = 0
+                            } else {
+                                attempts++;
+                            }
+                        } else {
+                            throw new Error('Attempts number exceded!');
+                        }
                     } catch (err) {
                         console.error('Error in adJsonBuilder loop:', err);
                         break;
                     }
                 } while (this.config.stuckedIndex || this.config.stuckedIndex === 0);
-                const rankedAdsHits = rankedAds(this.hits, this.searchTerm);
-                resolve(rankedAdsHits);
+                const setIsFakePriceAdsArrayHits = setIsFakePriceAdsArray(this.hits, this.searchTerm);
+                resolve(setIsFakePriceAdsArrayHits);
             } catch (err) {
                 reject("Error in olxScrapRun function" + err);
             }

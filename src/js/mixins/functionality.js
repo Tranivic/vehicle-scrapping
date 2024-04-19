@@ -20,30 +20,21 @@ exports.throttle_loop = async (array, callback, delay) => {
     }
 };
 
-exports.ads_ranking = (adsArray) => {
+exports.set_is_fake_price= (adsArray) => {
     const keywords = require('@public/keywords.json');
-    const badWords = keywords.badWords;
-    const rankedAdsArray = [];
+    const priceWords = keywords.fakePriceWords;
+    const setedArray = [];
 
     adsArray.map(element => {
-        let elementScore = 5;
-
-        const hasBadWord = badWords.some(badWord => {
+        const hasBadWord = priceWords.some(badWord => {
             if (element.description.toUpperCase().includes(badWord.toUpperCase())) {
                 return true;
             }
         });
-
-        const diferenceFipePrice = element.fipePrice ? element.fipePrice - element.price : null;
-        const diferenceAveragePrice = element.averageOlxPrice ? element.averageOlxPrice - element.price : null;
-        const badPrice = (diferenceFipePrice && diferenceFipePrice > 15000) || (diferenceAveragePrice && diferenceAveragePrice > 15000);
-
-        if (hasBadWord) { elementScore--; }
-        if (badPrice) { elementScore--; }
-        element.score = elementScore;
-        rankedAdsArray.push(element);
+        element.fake_price = hasBadWord? "sim": "não";
+        setedArray.push(element);
     });
-    return rankedAdsArray;
+    return setedArray;
 };
 
 exports.get_search_term = (url) => {
