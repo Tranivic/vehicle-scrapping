@@ -1,0 +1,16 @@
+version: '3'
+services:
+  node:
+#      image: registry.gitlab.wdhouse.com.br:6991/docker/wdnode:v2
+      image: bitnami/node:20.12.2-debian-12-r3
+      working_dir: /usr/app
+      command: "sh './runBash.sh'"
+      # command: ["sh", "./runBash.sh", "npm", "run", "dockerStart"]
+      volumes:
+        - "./app:/usr/app"
+        - "/usr/app/node_modules"
+      ports:
+        - "3535:3000"
+#networks:
+#  proxy:
+#    external: true

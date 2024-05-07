@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start" : "node src/main.js"
+    "start" : "node src/main.js",
+    "dockerInstall": "npm install && npx puppeteer browsers install chrome"
   },
   "_moduleAliases": {
     "@": ".",

@@ -65,7 +65,7 @@ module.exports = {
     async extractMainData(useProxys, extractionUrl) {
         return new Promise(async (resolve, reject) => {
             try {
-                puppeteer.launch({ headless: "new", args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then(async browser => {
+                puppeteer.launch({ headless: "new", args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : '', '--no-sandbox'] }).then(async browser => {
                     const page = await browser.newPage();
                     if (useProxys) {
                         await autenticateProxy(page, this.proxys.user, this.proxys.password);
@@ -123,7 +123,7 @@ module.exports = {
             if (currentIndex < customIndex) {
                 currentIndex++;
             } else {
-                const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : ''] }).then();
+                const browser = await puppeteer.launch({ headless: "new", args: [usingProxy ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : '', '--no-sandbox'] }).then();
                 try {
                     if (usingProxy) {
                         const newProxy = rotateProxy(this.proxys.useLimit, this.proxys.usage).newProxyValue;
