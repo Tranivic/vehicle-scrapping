@@ -11,7 +11,7 @@ const createFolder = (folderName) => {
 };
 exports.save_file = (filePath, fileName, fileData) => {
 	const fullFilePath = filePath + fileName;
-	createFolder(filePath)
+	createFolder(filePath);
 	fs.writeFile(fullFilePath, fileData, (err) => {
 		if (err) {
 			console.error('Error saving the file', err);

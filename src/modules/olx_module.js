@@ -40,7 +40,7 @@ module.exports = {
         const objectBuilded = {
             title: adObject.title,
             description: '',
-            price: adObject.price? parseInt(adObject.price.replace(/[^0-9]/g, '')) : null,
+            price: adObject.price ? parseInt(adObject.price.replace(/[^0-9]/g, '')) : null,
             fipePrice: null,
             averageOlxPrice: null,
             listId: adObject.listId,
@@ -48,7 +48,7 @@ module.exports = {
             thumbnail: adObject.thumbnail,
             location: adObject.location,
             imagesCount: adObject.images.length,
-        }
+        };
         if ('trackingSpecificData' in adObject) {
             adObject.trackingSpecificData.forEach((prop) => {
                 objectBuilded[prop.key] = prop.value;
@@ -59,7 +59,7 @@ module.exports = {
                 objectBuilded[prop.name] = prop.value;
             });
         }
-        return objectBuilded
+        return objectBuilded;
     },
 
     async extractMainData(useProxys, extractionUrl) {
@@ -205,7 +205,7 @@ module.exports = {
                             this.config.stuckedIndex = await this.adJsonBuilder(mainArrayResponse, this.config.stuckedIndex, useProxys);
                             if (lastIndex !== this.config.stuckedIndex) {
                                 lastIndex = this.config.stuckedIndex;
-                                attempts = 0
+                                attempts = 0;
                             } else {
                                 attempts++;
                             }
