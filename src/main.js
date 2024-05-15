@@ -1,6 +1,6 @@
 require('module-alias/register');
 const olxModule = require('@modules/olx_module');
-const saveFile = require('@mixins/fs_functions').save_file;
+const saveFile = require('@utils/fs_functions').save_file;
 const generateCsv = require("@plugins/json2csv").generate_csv;
 
 // Run
