@@ -5,8 +5,8 @@
   "_moduleAliases": {
     "@": ".",
     "@modules": "./src/modules",
-    "@mixins": "./src/js/mixins",
-    "@plugins": "./src/js/plugins",
+    "@utils": "./src/utils",
+    "@plugins": "./src/plugins",
     "@public": "./public"
   },
   "dependencies": {

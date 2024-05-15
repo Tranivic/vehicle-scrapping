@@ -1,4 +1,4 @@
-const generateRandomNamber = require('@mixins/utils').generate_random_number;
+const generateRandomNamber = require('@utils/utils').generate_random_number;
 
 exports.get_stored_proxy = (randomize, proxyIndex) => {
     const proxyList = require('@public/proxies/proxies.json');
