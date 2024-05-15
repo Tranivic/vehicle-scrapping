@@ -20,7 +20,7 @@ exports.throttle_loop = async (array, callback, delay) => {
     }
 };
 
-exports.set_is_fake_price= (adsArray) => {
+exports.set_is_fake_price = (adsArray) => {
     const keywords = require('@public/keywords.json');
     const priceWords = keywords.fakePriceWords;
     const setedArray = [];
@@ -31,7 +31,7 @@ exports.set_is_fake_price= (adsArray) => {
                 return true;
             }
         });
-        element.fake_price = hasBadWord? "sim": "não";
+        element.fake_price = hasBadWord ? "sim" : "não";
         setedArray.push(element);
     });
     return setedArray;
