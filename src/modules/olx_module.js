@@ -40,7 +40,7 @@ module.exports = {
         const objectBuilded = {
             title: adObject.title,
             description: '',
-            price: adObject.price ? parseInt(adObject.price.replace(/[^0-9]/g, '')) : null,
+            price: adObject.price,
             fipePrice: null,
             averageOlxPrice: null,
             listId: adObject.listId,
@@ -191,7 +191,10 @@ module.exports = {
                             console.log('Arrays merged');
                             mainArrayResponse = mainArrayResponse.concat(pageArrayResponse);
                         }
-                        if (!pageArrayResponse || pageArrayResponse.length < 50) {
+                        if (!pageArrayResponse) {
+                            page = page - 1;
+                        }
+                        if(pageArrayResponse.length < 50 && page > 2){
                             console.log('Stoping pagination');
                             break;
                         }
