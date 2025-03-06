@@ -40,7 +40,7 @@ module.exports = {
         const objectBuilded = {
             title: adObject.title,
             description: '',
-            price: parseInt(adObject.price.replace(/[^0-9]/g, '')),
+            price: adObject.price,
             fipePrice: null,
             averageOlxPrice: null,
             listId: adObject.listId,
@@ -160,7 +160,7 @@ module.exports = {
                 } catch (err) {
                     console.log('Error in child extracting: ' + err);
                     console.log(`Restarting from index: ${index}...`);
-                    this.proxys.usage = this.proxys.usage < 8 ? 8 : this.proxys.usage;
+                    this.proxys.usage = this.proxys.usage = this.proxys.useLimit;
                     await browser.close();
                     return index;
                 }
@@ -191,7 +191,10 @@ module.exports = {
                             console.log('Arrays merged');
                             mainArrayResponse = mainArrayResponse.concat(pageArrayResponse);
                         }
-                        if (!pageArrayResponse || pageArrayResponse.length < 50) {
+                        if (!pageArrayResponse) {
+                            page = page - 1;
+                        }
+                        if(pageArrayResponse.length < 50 && page > 2){
                             console.log('Stoping pagination');
                             break;
                         }
