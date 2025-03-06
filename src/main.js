@@ -11,7 +11,7 @@ async function run() {
         const urlObject = new URL(url);
         const searchParams = new URLSearchParams(urlObject.search);
         const searchTerm = searchParams.get('q');
-        storedAds = await olxModule.olxScrapRun(olxModule.url_builder(url), true, true);
+        storedAds = await olxModule.olxScrapRun(olxModule.url_builder(url), false, true);
         saveFile('./log/', `result_${searchTerm || null}_${new Date().valueOf()}.json`, JSON.stringify(storedAds));
         generateCsv(storedAds,searchTerm);
         console.log('Finished!');
