@@ -7,7 +7,8 @@
     "@modules": "./src/modules",
     "@utils": "./src/utils",
     "@plugins": "./src/plugins",
-    "@public": "./public"
+    "@public": "./public",
+    "@config": "./config"
   },
   "dependencies": {
     "axios": "^1.5.1",

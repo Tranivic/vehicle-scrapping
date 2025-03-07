@@ -8,13 +8,15 @@ const autenticateProxy = require('@utils/proxies').autenticate_proxy;
 const getIp = require('@utils/proxies').get_ip;
 const getProxy = require('@utils/proxies').get_stored_proxy;
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-
+const olxAdConfig = require('@config/olx.json');
 puppeteer.use(StealthPlugin());
 
 module.exports = {
     hits: [],
     config: {
         stuckedIndex: 0,
+        maxPageExtraction: 50,
+        batchSize: 20,
     },
     proxys: {
         value: null,
@@ -35,8 +37,21 @@ module.exports = {
         console.log('Link para extração: ' + link);
         return link;
     },
-
+    
+    
     adadObjecttBuilder(adObject) {
+        
+        const parseOlxAd = (ad, config) => {
+            for (const key in ad) {
+                ad[key] = {
+                    value: ad[key],
+                    label: config[key].label || false,
+                    enabled: config[key].enabled || false,
+                };
+            }
+            return ad
+        };
+
         const objectBuilded = {
             title: adObject.title,
             description: '',
@@ -59,7 +74,8 @@ module.exports = {
                 objectBuilded[prop.name] = prop.value;
             });
         }
-        return objectBuilded;
+
+        return parseOlxAd(objectBuilded, olxAdConfig);
     },
 
     async extractMainData(useProxys, extractionUrl) {
@@ -105,6 +121,7 @@ module.exports = {
     },
 
     async processAd(ad, browser, usingProxy) {
+        if(this.hits.find(el => el.listId.value == ad.listId.value)) return;
         const page = await browser.newPage();
         try {
             if (usingProxy) {
@@ -115,7 +132,7 @@ module.exports = {
             }
             await puppeteerModule.prevent_resource_download(page);
 
-            await page.goto(ad.url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+            await page.goto(ad.url.value, { waitUntil: 'domcontentloaded', timeout: 10000 });
             const extractedChildData = await page.evaluate((htmlIdentifiers) => {
                 const initialData = JSON.parse(document.querySelector(htmlIdentifiers.initialDataId).getAttribute('data-json')).ad;
                 const descriptionHtml = document.querySelector(htmlIdentifiers.descriptionHtml).getAttribute('content');
@@ -124,13 +141,13 @@ module.exports = {
                 return { descriptionHtml, fipePrice, averageOlxPrice };
             }, this.htmlIdentifiers);
 
-            ad.description = extractedChildData.descriptionHtml;
-            ad.fipePrice = extractedChildData.fipePrice;
-            ad.averageOlxPrice = extractedChildData.averageOlxPrice;
+            ad.description.value = extractedChildData.descriptionHtml;
+            ad.fipePrice.value = extractedChildData.fipePrice;
+            ad.averageOlxPrice.value = extractedChildData.averageOlxPrice;
             this.hits.push(ad);
-            console.log(`Extracted ${ad.listId}`);
+            console.log(`Extracted ${ad.listId.value}`);
         } catch (err) {
-            console.log(`Error processing ad ${ad.listId}: ${err}`);
+            console.log(`Error processing ad ${ad.listId.value}: ${err}`);
         } finally {
             await page.close();
         }
@@ -148,19 +165,19 @@ module.exports = {
             }
 
             if (paginate && mainArrayResponse.length === 50) {
-                await this.paginate(url, useProxys, mainArrayResponse);
+                mainArrayResponse = await this.paginate(url, useProxys, mainArrayResponse);
             }
-
+            
+            this.hits = setIsFakePriceAdsArray(this.hits, getSearchTerm(url));
+            
             const browser = await puppeteer.launch({ headless: false, args: [useProxys ? `--proxy-server=${this.proxys.protocol}${this.proxys.value}` : '', '--no-sandbox'] });
-            const batchSize = 10;
-            for (let i = 0; i < mainArrayResponse.length; i += batchSize) {
-                const batch = mainArrayResponse.slice(i, i + batchSize);
+            for (let i = 0; i < mainArrayResponse.length; i += this.config.batchSize) {
+                const batch = mainArrayResponse.slice(i, i + this.config.batchSize);
                 await Promise.all(batch.map(ad => this.processAd(ad, browser, useProxys)));
             }
 
             await browser.close();
-            const setIsFakePriceAdsArrayHits = setIsFakePriceAdsArray(this.hits, getSearchTerm(url));
-            return setIsFakePriceAdsArrayHits;
+            return this.hits;
         } catch (err) {
             console.error("Error in olxScrapRun function:", err);
             throw err;
@@ -168,7 +185,7 @@ module.exports = {
     },
 
     async paginate(url, useProxys, mainArrayResponse) {
-        for (let page = 2; page <= 99999999999; page++) {
+        for (let page = 2; page <= this.config.maxPageExtraction; page++) {
             const newUrl = new URL(url);
             newUrl.searchParams.set("o", page);
             console.log(`New url for extract page ${page}: ${newUrl}`);
@@ -181,5 +198,6 @@ module.exports = {
                 break;
             }
         }
+        return mainArrayResponse;
     }
 };

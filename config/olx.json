@@ -1,0 +1,234 @@
+{
+    "listId": {
+        "enabled": true,
+        "label": "ID do Anuncio"
+    },
+    "thumbnail": {
+        "enabled": false,
+        "label": "Thumbnail"
+    },
+    "title": {
+        "enabled": true,
+        "label": "Título"
+    },
+    "description": {
+        "enabled": true,
+        "label": "Descrição"
+    },
+    "price": {
+        "enabled": true,
+        "label": "Preço"
+    },
+    "fipePrice": {
+        "enabled": true,
+        "label": "Preço FIPE"
+    },
+    "averageOlxPrice": {
+        "enabled": true,
+        "label": "Preço Médio OLX"
+    },
+    "mileage": {
+        "enabled": true,
+        "label": "Quilometragem"
+    },
+    "url": {
+        "enabled": true,
+        "label": "URL"
+    },
+    "location": {
+        "enabled": true,
+        "label": "Localização"
+    },
+    "imagesCount": {
+        "enabled": false,
+        "label": "Quantidade de Imagens"
+    },
+    "region": {
+        "enabled": false,
+        "label": "Região"
+    },
+    "model": {
+        "enabled": true,
+        "label": "Modelo"
+    },
+    "version": {
+        "enabled": true,
+        "label": "Versão"
+    },
+    "category": {
+        "enabled": false,
+        "label": "Categoria"
+    },
+    "vehicle_model": {
+        "enabled": false,
+        "label": "Modelo do Veículo"
+    },
+    "vehicle_brand": {
+        "enabled": false,
+        "label": "Marca do Veículo"
+    },
+    "cartype": {
+        "enabled": false,
+        "label": "Tipo de Carro"
+    },
+    "regdate": {
+        "enabled": true,
+        "label": "Data de Registro"
+    },
+    "motorpower": {
+        "enabled": false,
+        "label": "Potência do Motor"
+    },
+    "fuel": {
+        "enabled": true,
+        "label": "Combustível"
+    },
+    "gearbox": {
+        "enabled": false,
+        "label": "Câmbio"
+    },
+    "car_steering": {
+        "enabled": false,
+        "label": "Direção"
+    },
+    "carcolor": {
+        "enabled": false,
+        "label": "Cor do Carro"
+    },
+    "doors": {
+        "enabled": false,
+        "label": "Portas"
+    },
+    "end_tag": {
+        "enabled": false,
+        "label": "Tag de Finalização"
+    },
+    "owner": {
+        "enabled": true,
+        "label": "Proprietário"
+    },
+    "exchange": {
+        "enabled": false,
+        "label": "Troca"
+    },
+    "financial": {
+        "enabled": false,
+        "label": "Financeiro"
+    },
+    "car_features": {
+        "enabled": false,
+        "label": "Características do Carro"
+    },
+    "gnv_kit": {
+        "enabled": true,
+        "label": "Kit GNV"
+    },
+    "owner_manual": {
+        "enabled": true,
+        "label": "Manual do Proprietário"
+    },
+    "extra_key": {
+        "enabled": true,
+        "label": "Chave Reserva"
+    },
+    "dealership_review": {
+        "enabled": false,
+        "label": "Avaliação da Concessionária"
+    },
+    "warranty": {
+        "enabled": false,
+        "label": "Garantia"
+    },
+    "has_gnv_kit": {
+        "enabled": true,
+        "label": "Possui Kit GNV"
+    },
+    "has_auction": {
+        "enabled": true,
+        "label": "Possui Leilão"
+    },
+    "has_paid_ipva": {
+        "enabled": false,
+        "label": "IPVA Pago"
+    },
+    "has_with_fine": {
+        "enabled": false,
+        "label": "Possui Multa"
+    },
+    "has_hydraulic_steering": {
+        "enabled": false,
+        "label": "Possui Direção Hidráulica"
+    },
+    "is_settled": {
+        "enabled": true,
+        "label": "Está Regularizado"
+    },
+    "is_funded": {
+        "enabled": true,
+        "label": "Está Financiado"
+    },
+    "indexed_financial_status": {
+        "enabled": true,
+        "label": "Status Financeiro Indexado"
+    },
+    "documentation_and_regularization": {
+        "enabled": true,
+        "label": "Documentação e Regularização"
+    },
+    "conservation_and_warranty": {
+        "enabled": true,
+        "label": "Conservação e Garantia"
+    },
+    "indexed_car_steering": {
+        "enabled": false,
+        "label": "Direção Indexada"
+    },
+    "on_autos_fair": {
+        "enabled": false,
+        "label": "Na Feira de Autos"
+    },
+    "seller_warranty": {
+        "enabled": false,
+        "label": "Garantia do Vendedor"
+    },
+    "easy_transfer": {
+        "enabled": false,
+        "label": "Transferência Fácil"
+    },
+    "new_tires": {
+        "enabled": false,
+        "label": "Pneus Novos"
+    },
+    "vehicle_delivery": {
+        "enabled": false,
+        "label": "Entrega do Veículo"
+    },
+    "fake_price": {
+        "enabled": true,
+        "label": "Preço Falso"
+    },
+    "condition_report_date": {
+        "enabled": false,
+        "label": "Data do Relatório de Condição"
+    },
+    "condition_report_detail": {
+        "enabled": false,
+        "label": "Detalhes do Relatório de Condição"
+    },
+    "condition_report_inspector": {
+        "enabled": false,
+        "label": "Inspetor do Relatório de Condição"
+    },
+    "condition_report_status": {
+        "enabled": false,
+        "label": "Status do Relatório de Condição"
+    },
+    "condition_report_visible": {
+        "enabled": false,
+        "label": "Relatório de Condição Visível"
+    },
+    "full_tank": {
+        "enabled": false,
+        "label": "Tanque Cheio"
+    }
+}
